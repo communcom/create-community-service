@@ -1,0 +1,28 @@
+{
+  "name": "create-community-service",
+  "version": "1.0.0",
+  "description": "",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/communcom/create-community-service.git"
+  },
+  "author": "commun.com",
+  "license": "GPL-3.0",
+  "bugs": {
+    "url": "https://github.com/communcom/create-community-service/issues"
+  },
+  "homepage": "https://github.com/communcom/create-community-service#readme",
+  "devDependencies": {
+    "prettier": "^2.0.2"
+  },
+  "dependencies": {
+    "cyberway-core-service": "^3.59.2",
+    "cyberwayjs": "^20.0.2",
+    "eosjs-ecc": "^4.0.7",
+    "node-fetch": "^2.6.0"
+  }
+}

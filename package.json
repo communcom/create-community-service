@@ -17,12 +17,15 @@
   },
   "homepage": "https://github.com/communcom/create-community-service#readme",
   "devDependencies": {
+    "faker": "^4.1.0",
     "prettier": "^2.0.2"
   },
   "dependencies": {
     "cyberway-core-service": "^3.59.2",
     "cyberwayjs": "^20.0.2",
     "eosjs-ecc": "^4.0.7",
-    "node-fetch": "^2.6.0"
+    "node-fetch": "^2.6.0",
+    "randomstring": "^1.1.5",
+    "text-encoding": "latest"
   }
 }

@@ -1,0 +1,18 @@
+module.exports = [
+    'initial',
+    'createAccount',
+    'appendUsername',
+    'grantPermissions',
+    'returnOneToken',
+    'createPoint',
+    'restockOneToken',
+    'openGalleryBalance',
+    'createCommunityInList',
+    'setInfo',
+    'setSysParams',
+    'setParams',
+    'grantAdditionalPermissions',
+    'openTechBalance',
+    'buyInitialSupplyPoints',
+    'done',
+];

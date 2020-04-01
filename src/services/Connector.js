@@ -21,8 +21,8 @@ class Connector extends BasicConnector {
                     validation: {
                         required: ['name', 'communityId'],
                         properties: {
-                            name: 'string',
-                            communityId: 'string',
+                            name: { type: 'string' },
+                            communityId: { type: 'string' },
                         },
                     },
                 },
@@ -32,13 +32,13 @@ class Connector extends BasicConnector {
                     validation: {
                         required: ['communityId'],
                         properties: {
-                            name: 'string',
-                            newCommunityId: 'string',
-                            description: 'string',
-                            rules: 'string',
-                            language: 'string',
-                            avatarUrl: 'string',
-                            coverUrl: 'string',
+                            name: { type: 'string' },
+                            newCommunityId: { type: 'string' },
+                            description: { type: 'string' },
+                            rules: { type: 'string' },
+                            language: { type: 'string' },
+                            avatarUrl: { type: 'string' },
+                            coverUrl: { type: 'string' },
                         },
                     },
                 },
@@ -48,7 +48,7 @@ class Connector extends BasicConnector {
                     validation: {
                         required: ['communityId'],
                         properties: {
-                            communityId: 'string',
+                            communityId: { type: 'string' },
                         },
                     },
                 },

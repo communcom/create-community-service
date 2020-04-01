@@ -6,7 +6,16 @@ const CreateCommunity = require('./CreateCommunity');
 const flow = require('../data/flow');
 
 class Flow {
-    constructor({ ticker, name, description, language, rules, avatarUrl, coverUrl, creator }) {
+    constructor({
+        communityId: ticker,
+        name,
+        description,
+        language,
+        rules,
+        avatarUrl,
+        coverUrl,
+        creator,
+    }) {
         this.commuitySetup = {
             name,
             description,
@@ -20,30 +29,36 @@ class Flow {
     }
 
     async executeFlow() {
-        let existingFlow = await CommunityModel.findOne(
-            { communityId: this.commuitySetup.ticker },
-            { _id: false },
+        const existingFlow = await CommunityModel.findOne(
+            { communityId: this.commuitySetup.ticker, creator: this.communityCreator },
+            { _id: false, creator: true },
             { lean: true }
         );
 
-        if (existingFlow) {
-            if (existingFlow.creator !== this.commuitySetup.creator) {
-                throw errors.ERR_ALREADY_EXISTS;
-            }
-            this.currentStep = existingFlow.currentStep;
-        } else {
-            existingFlow = await CommunityModel.create({
-                ...this.commuitySetup,
-                communityId: this.commuitySetup.ticker,
-            });
-            existingFlow = existingFlow.toObject();
-            this.currentStep = flow[0];
+        if (!existingFlow) {
+            throw errors.ERR_COMMUNITY_NOT_FOUND;
         }
+
+        // if (existingFlow) {
+        //     if (existingFlow.creator !== this.commuitySetup.creator) {
+        //         throw errors.ERR_ALREADY_EXISTS;
+        //     }
+        //     this.currentStep = existingFlow.currentStep;
+        // } else {
+        //     existingFlow = await CommunityModel.create({
+        //         ...this.commuitySetup,
+        //         communityId: this.commuitySetup.ticker,
+        //     });
+        //     existingFlow = existingFlow.toObject();
+        //     this.currentStep = flow[0];
+        // }
 
         this.communityCreator = new CreateCommunity({
             ...existingFlow,
             ticker: existingFlow.communityId,
         });
+
+        this.currentStep = existingFlow.currentStep;
 
         while (this.currentStep !== 'done') {
             await this.nextStep();
@@ -51,14 +66,18 @@ class Flow {
     }
 
     async nextStep() {
-        this.currentStep = flow[flow.indexOf(this.currentStep) + 1];
+        const stepInProgress = flow[flow.indexOf(this.currentStep) + 1];
 
-        await CommunityModel.updateOne(
-            { communityId: this.communityCreator.communitySettings.ticker },
-            { $set: { currentStep: this.currentStep, ...this.communityCreator.communitySettings } }
-        );
+        if (stepInProgress === 'done') {
+            await CommunityModel.updateOne(
+                { communityId: this.communityCreator.communitySettings.ticker },
+                { $set: { isDone: true, isInProgress: false, currentStep: 'done' } }
+            );
+            Logger.log('Community creation done');
+            return;
+        }
 
-        switch (this.currentStep) {
+        switch (stepInProgress) {
             case 'createAccount':
                 try {
                     await this.communityCreator.createNewAccount();
@@ -157,18 +176,28 @@ class Flow {
                     this._throwStepError(error);
                 }
                 break;
-            case 'done':
-                return;
             default:
                 throw {
                     ...errors.ERR_UNKNOWN_STEP_EXECUTION,
                     data: {
-                        step: this.currentStep,
+                        step: stepInProgress,
                     },
                 };
         }
 
-        Logger.log('Executed step', this.currentStep);
+        Logger.log('Executed step', stepInProgress);
+
+        this.currentStep = stepInProgress;
+        await CommunityModel.updateOne(
+            { communityId: this.communityCreator.communitySettings.ticker },
+            {
+                $set: {
+                    currentStep: this.currentStep,
+                    ...this.communityCreator.communitySettings,
+                    isInProgress: true,
+                },
+            }
+        );
     }
 
     _throwStepError(error) {

@@ -1,5 +1,6 @@
 module.exports = [
-    'initial',
+    'settingUp',
+    'ready',
     'createAccount',
     'appendUsername',
     'grantPermissions',

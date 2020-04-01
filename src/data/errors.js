@@ -11,4 +11,20 @@ module.exports = {
         code: 1002,
         message: 'Tried to execute unknown step',
     },
+    ERR_USER_NOT_AUTHORIZED: {
+        code: 1003,
+        message: 'User not authorized',
+    },
+    ERR_COMMUNITY_NOT_FOUND: {
+        code: 1004,
+        message: 'Community not found',
+    },
+    ERR_CANNOT_CHANGE_COMMUNITY_SETTINGS: {
+        code: 1005,
+        message: 'Community creation has already started, cannot change settings',
+    },
+    ERR_COMMUNITY_ALREADY_CREATED: {
+        code: 1006,
+        message: 'Community creation has already started, cannot change settings',
+    },
 };

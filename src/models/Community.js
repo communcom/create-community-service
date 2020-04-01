@@ -33,8 +33,20 @@ module.exports = MongoDB.makeModel(
         },
         currentStep: {
             type: String,
-            default: 'initial',
+            default: 'settingUp',
             enum: [],
+        },
+        isDone: {
+            type: Boolean,
+            default: false,
+        },
+        canChangeSettings: {
+            type: Boolean,
+            default: true,
+        },
+        isInProgress: {
+            type: Boolean,
+            default: false,
         },
         fee: {
             type: Number,

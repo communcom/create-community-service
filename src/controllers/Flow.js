@@ -26,32 +26,20 @@ class Flow {
             creator,
             ticker,
         };
+
+        this.communityCreator = creator;
     }
 
     async executeFlow() {
         const existingFlow = await CommunityModel.findOne(
             { communityId: this.commuitySetup.ticker, creator: this.communityCreator },
-            { _id: false, creator: true },
+            { _id: false },
             { lean: true }
         );
 
         if (!existingFlow) {
             throw errors.ERR_COMMUNITY_NOT_FOUND;
         }
-
-        // if (existingFlow) {
-        //     if (existingFlow.creator !== this.commuitySetup.creator) {
-        //         throw errors.ERR_ALREADY_EXISTS;
-        //     }
-        //     this.currentStep = existingFlow.currentStep;
-        // } else {
-        //     existingFlow = await CommunityModel.create({
-        //         ...this.commuitySetup,
-        //         communityId: this.commuitySetup.ticker,
-        //     });
-        //     existingFlow = existingFlow.toObject();
-        //     this.currentStep = flow[0];
-        // }
 
         this.communityCreator = new CreateCommunity({
             ...existingFlow,
@@ -60,7 +48,7 @@ class Flow {
 
         this.currentStep = existingFlow.currentStep;
 
-        while (this.currentStep !== 'done') {
+        while (this.currentStep !== flow[flow.length - 1]) {
             await this.nextStep();
         }
     }
@@ -73,6 +61,7 @@ class Flow {
                 { communityId: this.communityCreator.communitySettings.ticker },
                 { $set: { isDone: true, isInProgress: false, currentStep: 'done' } }
             );
+            this.currentStep = 'done';
             Logger.log('Community creation done');
             return;
         }

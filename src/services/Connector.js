@@ -26,6 +26,16 @@ class Connector extends BasicConnector {
                         },
                     },
                 },
+                getCommunity: {
+                    handler: this._community.getCommunity,
+                    scope: this._community,
+                    validation: {
+                        required: ['communityId'],
+                        properties: {
+                            communityId: { type: 'string' },
+                        },
+                    },
+                },
                 setSettings: {
                     handler: this._community.setSettings,
                     scope: this._community,
@@ -34,6 +44,7 @@ class Connector extends BasicConnector {
                         properties: {
                             name: { type: 'string' },
                             newCommunityId: { type: 'string' },
+                            communityId: { type: 'string' },
                             description: { type: 'string' },
                             rules: { type: 'string' },
                             language: { type: 'string' },

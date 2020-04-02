@@ -5,7 +5,28 @@ const CommunityModel = require('../../models/Community');
 const Flow = require('../Flow');
 
 class CommunityApi extends BasicController {
+    async getCommunity({ communityId }, { userId: creator }) {
+        if (!creator) {
+            throw errors.ERR_USER_NOT_AUTHORIZED;
+        }
+        const community = await CommunityModel.findOne(
+            { communityId, creator },
+            { _id: false, __v: false, createdAt: false, updatedAt: false },
+            { lean: true }
+        );
+
+        if (!community) {
+            throw errors.ERR_COMMUNITY_NOT_FOUND;
+        }
+
+        return { community };
+    }
+
     async createNewCommunity({ name, communityId }, { userId: creator }) {
+        if (!creator) {
+            throw errors.ERR_USER_NOT_AUTHORIZED;
+        }
+
         const existingCommunity = await CommunityModel.findOne({ communityId });
         if (existingCommunity) {
             throw errors.ERR_ALREADY_EXISTS;
@@ -18,6 +39,10 @@ class CommunityApi extends BasicController {
         { communityId, newCommunityId, name, description, language, rules, avatarUrl, coverUrl },
         { userId: creator }
     ) {
+        if (!creator) {
+            throw errors.ERR_USER_NOT_AUTHORIZED;
+        }
+
         const newSettings = {};
 
         if (newCommunityId) {
@@ -68,6 +93,10 @@ class CommunityApi extends BasicController {
     }
 
     async startCommunityCreation({ communityId }, { userId: creator }) {
+        if (!creator) {
+            throw errors.ERR_USER_NOT_AUTHORIZED;
+        }
+
         const existingCommunity = await CommunityModel.findOne(
             { communityId, creator },
             { _id: false },
@@ -79,7 +108,7 @@ class CommunityApi extends BasicController {
         }
 
         if (existingCommunity.isDone) {
-            throw errors.ERR_COMMUNITY_ALREADY_CREATED;
+            throw errors.ERR_ALREADY_EXISTS;
         }
 
         if (!existingCommunity.isInProgress) {

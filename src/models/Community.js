@@ -4,6 +4,10 @@ const MongoDB = core.services.MongoDB;
 module.exports = MongoDB.makeModel(
     'Community',
     {
+        creator: {
+            type: String,
+            required: true,
+        },
         communityId: {
             type: String,
             required: true,
@@ -112,6 +116,7 @@ module.exports = MongoDB.makeModel(
             {
                 fields: {
                     communityId: 1,
+                    creator: 1,
                 },
                 options: {
                     unique: true,

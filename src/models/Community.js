@@ -109,6 +109,9 @@ module.exports = MongoDB.makeModel(
         authorsPercent: {
             type: Number,
         },
+        stepsData: {
+            type: Object,
+        },
     },
     {
         index: [

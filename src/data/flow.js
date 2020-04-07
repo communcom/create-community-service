@@ -15,5 +15,7 @@ module.exports = [
     'grantAdditionalPermissions',
     'openTechBalance',
     'buyInitialSupplyPoints',
+    'waitForSupplyRebuyTrx',
+    'transferPointsToUser',
     'done',
 ];

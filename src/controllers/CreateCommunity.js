@@ -1,23 +1,31 @@
+const crypto = require('crypto');
 const BlockChain = require('../utils/Blockchain');
+const WalletApi = require('../controllers/external/WalletApi');
 const {
     communitySettings,
     communitySystemParams,
     communityParams,
 } = require('../data/communitySettings');
-const { GLS_TECH_NAME } = require('../data/env');
+const { GLS_TECH_NAME, GLS_ENCRYPTION_PASSWORD } = require('../data/env');
 
 class CommunityCreator {
-    constructor({
-        ticker,
-        name,
-        description,
-        language = 'eng',
-        rules,
-        avatarUrl,
-        coverUrl,
-        creator,
-    }) {
+    constructor(
+        {
+            ticker,
+            name,
+            description,
+            language = 'eng',
+            rules,
+            avatarUrl,
+            coverUrl,
+            creator,
+            restoreData,
+        },
+        { connector }
+    ) {
         this.bcApi = new BlockChain();
+        this.walletApi = new WalletApi({ connector });
+
         this.communitySettings = {
             ...communitySettings,
             ticker,
@@ -32,6 +40,26 @@ class CommunityCreator {
         this.communityCreatorUser = creator;
         this.communitySystemParams = communitySystemParams;
         this.communityParams = communityParams;
+        this.initialSupplyRebuyTrxId = null;
+        if (restoreData) {
+            this.restore(restoreData);
+        }
+    }
+
+    async transferPointsToUser() {
+        const balance = await this.walletApi.getBalance({ userId: GLS_TECH_NAME });
+
+        const transferTrx = await this.bcApi.generatePointTransferTrx({
+            from: GLS_TECH_NAME,
+            to: this.communityCreatorUser,
+            ticker: this.communitySettings.ticker,
+            memo: 'initial supply',
+            quantity: 1,
+        });
+    }
+
+    async waitForSupplyRebuyTrx() {
+        await this.walletApi.waitForTrx(this.initialSupplyRebuyTrxId);
     }
 
     async buyInitialSupplyPoints() {
@@ -42,7 +70,9 @@ class CommunityCreator {
             to: 'c.point',
         });
 
-        await this.bcApi.executeTrx(reBuyTrx);
+        const { transaction_id: trxId } = await this.bcApi.executeTrx(reBuyTrx);
+        this.initialSupplyRebuyTrxId = trxId;
+        return { initialSupplyRebuyTrxId: trxId };
     }
 
     async openTechBalance() {
@@ -240,7 +270,7 @@ class CommunityCreator {
             ...this.communityCreatorAccount,
         });
         await this.bcApi.executeTrx(usernameTrx);
-        return { ...this.communityCreatorAccount };
+        return { ...this._encryptAccountData(this.communityCreatorAccount) };
     }
 
     async createNewAccount() {
@@ -252,8 +282,65 @@ class CommunityCreator {
         await this.bcApi.executeTrx(newAccTrx);
         this.bcApi.addPrivateKeys([active.privateKey, owner.privateKey]);
 
-        return { ...this.communityCreatorAccount };
+        return { ...this._encryptAccountData(this.communityCreatorAccount) };
     }
+
+    _encryptAccountData({ userId, username, active, owner }) {
+        const encryptedActivePrivateKey = encrypt(active.privateKey);
+        const encryptedOwnerPrivateKey = encrypt(owner.privateKey);
+
+        return {
+            userId,
+            username,
+            active: { publicKey: active.publicKey, privateKey: encryptedActivePrivateKey },
+            owner: { publicKey: owner.publicKey, privateKey: encryptedOwnerPrivateKey },
+        };
+    }
+
+    _decryptAccountData({ userId, username, active, owner }) {
+        const decryptedActivePrivateKey = decrypt(active.privateKey);
+        const decryptedOwnerPrivateKey = decrypt(owner.privateKey);
+
+        return {
+            userId,
+            username,
+            active: { publicKey: active.publicKey, privateKey: decryptedActivePrivateKey },
+            owner: { publicKey: owner.publicKey, privateKey: decryptedOwnerPrivateKey },
+        };
+    }
+
+    restore(restoreData) {
+        for (const dataKey in restoreData) {
+            const data = restoreData[dataKey];
+            switch (dataKey) {
+                case 'createAccount':
+                case 'appendUsername':
+                    this.communityCreatorAccount = this._decryptAccountData({ ...data });
+                    this.bcApi.addPrivateKeys([
+                        this.communityCreatorAccount.active.privateKey,
+                        this.communityCreatorAccount.owner.privateKey,
+                    ]);
+                    break;
+                case 'buyInitialSupplyPoints':
+                    this.initialSupplyRebuyTrxId = data.initialSupplyRebuyTrxId;
+                    break;
+            }
+        }
+    }
+}
+
+function encrypt(data) {
+    const cipher = crypto.createCipher('aes-256-ctr', GLS_ENCRYPTION_PASSWORD);
+    let encrypted = cipher.update(data, 'utf8', 'hex');
+    encrypted += cipher.final('hex');
+    return encrypted;
+}
+
+function decrypt(data) {
+    const decipher = crypto.createDecipher('aes-256-ctr', GLS_ENCRYPTION_PASSWORD);
+    let decrypted = decipher.update(data, 'hex', 'utf8');
+    decrypted += decipher.final('utf8');
+    return decrypted;
 }
 
 module.exports = CommunityCreator;

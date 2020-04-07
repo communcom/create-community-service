@@ -115,7 +115,7 @@ class CommunityApi extends BasicController {
             await CommunityModel.updateOne({ communityId }, { $set: { currentStep: 'ready' } });
         }
 
-        const flow = new Flow(existingCommunity);
+        const flow = new Flow(existingCommunity, { connector: this.connector });
 
         return await flow.executeFlow();
     }

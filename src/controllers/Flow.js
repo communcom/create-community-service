@@ -6,16 +6,10 @@ const CreateCommunity = require('./CreateCommunity');
 const flow = require('../data/flow');
 
 class Flow {
-    constructor({
-        communityId: ticker,
-        name,
-        description,
-        language,
-        rules,
-        avatarUrl,
-        coverUrl,
-        creator,
-    }) {
+    constructor(
+        { communityId: ticker, name, description, language, rules, avatarUrl, coverUrl, creator },
+        { connector }
+    ) {
         this.commuitySetup = {
             name,
             description,
@@ -28,6 +22,7 @@ class Flow {
         };
 
         this.communityCreator = creator;
+        this.connector = connector;
     }
 
     async executeFlow() {
@@ -41,10 +36,14 @@ class Flow {
             throw errors.ERR_COMMUNITY_NOT_FOUND;
         }
 
-        this.communityCreator = new CreateCommunity({
-            ...existingFlow,
-            ticker: existingFlow.communityId,
-        });
+        this.communityCreator = new CreateCommunity(
+            {
+                ...existingFlow,
+                ticker: existingFlow.communityId,
+                restoreData: existingFlow.stepsData,
+            },
+            { connector: this.connector }
+        );
 
         this.currentStep = existingFlow.currentStep;
 
@@ -54,9 +53,9 @@ class Flow {
     }
 
     async nextStep() {
-        const stepInProgress = flow[flow.indexOf(this.currentStep) + 1];
+        this.stepInProgress = flow[flow.indexOf(this.currentStep) + 1];
 
-        if (stepInProgress === 'done') {
+        if (this.stepInProgress === 'done') {
             await CommunityModel.updateOne(
                 { communityId: this.communityCreator.communitySettings.ticker },
                 { $set: { isDone: true, isInProgress: false, currentStep: 'done' } }
@@ -65,102 +64,116 @@ class Flow {
             Logger.log('Community creation done');
             return;
         }
-
-        switch (stepInProgress) {
+        let stepData;
+        switch (this.stepInProgress) {
             case 'createAccount':
                 try {
-                    await this.communityCreator.createNewAccount();
+                    stepData = await this.communityCreator.createNewAccount();
                 } catch (error) {
                     this._throwStepError(error);
                 }
                 break;
             case 'appendUsername':
                 try {
-                    await this.communityCreator.appendUsername();
+                    stepData = await this.communityCreator.appendUsername();
                 } catch (error) {
                     this._throwStepError(error);
                 }
                 break;
             case 'grantPermissions':
                 try {
-                    await this.communityCreator.grantPermissions();
+                    stepData = await this.communityCreator.grantPermissions();
                 } catch (error) {
                     this._throwStepError(error);
                 }
                 break;
             case 'returnOneToken':
                 try {
-                    await this.communityCreator.returnOneToken();
+                    stepData = await this.communityCreator.returnOneToken();
                 } catch (error) {
                     this._throwStepError(error);
                 }
                 break;
             case 'createPoint':
                 try {
-                    await this.communityCreator.createPoint();
+                    stepData = await this.communityCreator.createPoint();
                 } catch (error) {
                     this._throwStepError(error);
                 }
                 break;
             case 'restockOneToken':
                 try {
-                    await this.communityCreator.restockOneToken();
+                    stepData = await this.communityCreator.restockOneToken();
                 } catch (error) {
                     this._throwStepError(error);
                 }
                 break;
             case 'openGalleryBalance':
                 try {
-                    await this.communityCreator.openGalleryBalance();
+                    stepData = await this.communityCreator.openGalleryBalance();
                 } catch (error) {
                     this._throwStepError(error);
                 }
                 break;
             case 'createCommunityInList':
                 try {
-                    await this.communityCreator.createCommunityInList();
+                    stepData = await this.communityCreator.createCommunityInList();
                 } catch (error) {
                     this._throwStepError(error);
                 }
                 break;
             case 'setInfo':
                 try {
-                    await this.communityCreator.setInfo();
+                    stepData = await this.communityCreator.setInfo();
                 } catch (error) {
                     this._throwStepError(error);
                 }
                 break;
             case 'setSysParams':
                 try {
-                    await this.communityCreator.setSysParams();
+                    stepData = await this.communityCreator.setSysParams();
                 } catch (error) {
                     this._throwStepError(error);
                 }
                 break;
             case 'setParams':
                 try {
-                    await this.communityCreator.setParams();
+                    stepData = await this.communityCreator.setParams();
                 } catch (error) {
                     this._throwStepError(error);
                 }
                 break;
             case 'grantAdditionalPermissions':
                 try {
-                    await this.communityCreator.grantAdditionalPermissions();
+                    stepData = await this.communityCreator.grantAdditionalPermissions();
                 } catch (error) {
                     this._throwStepError(error);
                 }
                 break;
             case 'openTechBalance':
                 try {
-                    await this.communityCreator.openTechBalance();
+                    stepData = await this.communityCreator.openTechBalance();
+                } catch (error) {
+                    this._throwStepError(error);
+                }
+                break;
+            case 'waitForSupplyRebuyTrx':
+                try {
+                    stepData = await this.communityCreator.waitForSupplyRebuyTrx();
+                } catch (error) {
+                    this._throwStepError(error);
+                }
+                break;
+            case 'transferPointsToUser':
+                try {
+                    stepData = await this.communityCreator.transferPointsToUser();
                 } catch (error) {
                     this._throwStepError(error);
                 }
                 break;
             case 'buyInitialSupplyPoints':
                 try {
-                    await this.communityCreator.buyInitialSupplyPoints();
+                    stepData = await this.communityCreator.buyInitialSupplyPoints();
                 } catch (error) {
                     this._throwStepError(error);
                 }
@@ -169,14 +182,14 @@ class Flow {
                 throw {
                     ...errors.ERR_UNKNOWN_STEP_EXECUTION,
                     data: {
-                        step: stepInProgress,
+                        step: this.stepInProgress,
                     },
                 };
         }
 
-        Logger.log('Executed step', stepInProgress);
+        Logger.log('Executed step', this.stepInProgress);
 
-        this.currentStep = stepInProgress;
+        this.currentStep = this.stepInProgress;
         await CommunityModel.updateOne(
             { communityId: this.communityCreator.communitySettings.ticker },
             {
@@ -184,6 +197,7 @@ class Flow {
                     currentStep: this.currentStep,
                     ...this.communityCreator.communitySettings,
                     isInProgress: true,
+                    [`stepsData.${this.currentStep}`]: stepData,
                 },
             }
         );
@@ -194,7 +208,7 @@ class Flow {
             ...errors.ERR_DURING_STEP_EXECUTION,
             data: {
                 error,
-                step: this.currentStep,
+                step: this.stepInProgress,
             },
         };
     }

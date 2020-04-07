@@ -72,7 +72,10 @@ class Connector extends BasicConnector {
             serverDefaults: {
                 parents: {},
             },
-            requiredClients: {},
+            requiredClients: {
+                wallet: env.GLS_WALLET_CONNECT,
+                walletWriter: env.GLS_WALLET_WRITER_CONNECT,
+            },
         });
     }
 }

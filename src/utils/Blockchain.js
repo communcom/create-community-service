@@ -162,8 +162,10 @@ class Blockchain {
     }
 
     generatePointTransferTrx({ from, to, quantity, ticker, memo }) {
+        quantity = Number(quantity);
+
         return this.generateSingleActionTrx({
-            contract: 'cyber.token',
+            contract: 'c.point',
             action: 'transfer',
             actor: from,
             data: { from, to, quantity: `${quantity.toFixed(3)} ${ticker}`, memo },

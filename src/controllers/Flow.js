@@ -207,7 +207,7 @@ class Flow {
         throw {
             ...errors.ERR_DURING_STEP_EXECUTION,
             data: {
-                error,
+                error: error.json || error.message || error,
                 step: this.stepInProgress,
             },
         };

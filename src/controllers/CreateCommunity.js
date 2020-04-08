@@ -41,6 +41,7 @@ class CommunityCreator {
         this.communitySystemParams = communitySystemParams;
         this.communityParams = communityParams;
         this.initialSupplyRebuyTrxId = null;
+        this.initialSupplyTransferTrxId = null;
         if (restoreData) {
             this.restore(restoreData);
         }
@@ -49,13 +50,23 @@ class CommunityCreator {
     async transferPointsToUser() {
         const balance = await this.walletApi.getBalance({ userId: GLS_TECH_NAME });
 
+        const pointBalance = balance.balances.find((balance) => {
+            if (balance.symbol === this.communitySettings.ticker) {
+                return true;
+            }
+        });
+
         const transferTrx = await this.bcApi.generatePointTransferTrx({
             from: GLS_TECH_NAME,
             to: this.communityCreatorUser,
-            ticker: this.communitySettings.ticker,
+            ticker: pointBalance.symbol,
             memo: 'initial supply',
-            quantity: 1,
+            quantity: Number(pointBalance.balance) - Number(pointBalance.balance) / 100,
         });
+
+        const { transaction_id: trxId } = await this.bcApi.executeTrx(transferTrx);
+        this.initialSupplyTransferTrxId = trxId;
+        return { initialSupplyTransferTrxId: trxId };
     }
 
     async waitForSupplyRebuyTrx() {
@@ -323,6 +334,9 @@ class CommunityCreator {
                     break;
                 case 'buyInitialSupplyPoints':
                     this.initialSupplyRebuyTrxId = data.initialSupplyRebuyTrxId;
+                    break;
+                case 'transferPointsToUser':
+                    this.initialSupplyTransferTrxId = data.initialSupplyTransferTrxId;
                     break;
             }
         }

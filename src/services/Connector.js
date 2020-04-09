@@ -15,14 +15,24 @@ class Connector extends BasicConnector {
     async start() {
         await super.start({
             serverRoutes: {
+                isExists: {
+                    handler: this._community.isExists,
+                    scope: this._community,
+                    validation: {
+                        required: [],
+                        properties: {
+                            name: { type: 'string' },
+                            communityId: { type: 'string' },
+                        },
+                    },
+                },
                 createNewCommunity: {
                     handler: this._community.createNewCommunity,
                     scope: this._community,
                     validation: {
-                        required: ['name', 'communityId'],
+                        required: ['name'],
                         properties: {
                             name: { type: 'string' },
-                            communityId: { type: 'string' },
                         },
                     },
                 },

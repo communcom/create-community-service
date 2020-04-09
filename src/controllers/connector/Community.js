@@ -3,6 +3,7 @@ const BasicController = core.controllers.Basic;
 const errors = require('../../data/errors');
 const CommunityModel = require('../../models/Community');
 const Flow = require('../Flow');
+const generateIdFromName = require('../../utils/generateTicker');
 
 class CommunityApi extends BasicController {
     async getCommunity({ communityId }, { userId: creator }) {
@@ -22,17 +23,31 @@ class CommunityApi extends BasicController {
         return { community };
     }
 
-    async createNewCommunity({ name, communityId }, { userId: creator }) {
+    async createNewCommunity({ name }, { userId: creator }) {
+        let communityId;
+        try {
+            communityId = await generateIdFromName(name);
+        } catch (e) {
+            throw errors.ERR_CANT_GENERATE_ID;
+        }
+
         if (!creator) {
             throw errors.ERR_USER_NOT_AUTHORIZED;
         }
 
-        const existingCommunity = await CommunityModel.findOne({ communityId });
+        const existingCommunity = await CommunityModel.findOne({ name });
         if (existingCommunity) {
             throw errors.ERR_ALREADY_EXISTS;
         }
 
         await CommunityModel.create({ name, communityId, creator });
+        const community = await CommunityModel.findOne(
+            { communityId },
+            { communityId: true, name: true, _id: false },
+            { lean: true }
+        );
+
+        return { community };
     }
 
     async setSettings(
@@ -137,6 +152,19 @@ class CommunityApi extends BasicController {
             }
         );
         return { communities };
+    }
+
+    async isExists({ name, communityId }) {
+        const query = {};
+
+        if (communityId) {
+            query.communityId = communityId;
+        } else {
+            query.name = name;
+        }
+
+        const community = await CommunityModel.findOne(query, { _id: 1 }, { lean: true });
+        return !!community;
     }
 }
 

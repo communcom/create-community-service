@@ -27,4 +27,8 @@ module.exports = {
         code: 1006,
         message: 'Community creation has already started, cannot change settings',
     },
+    ERR_CANT_GENERATE_ID: {
+        code: 1007,
+        message: 'Cannot generate communityId for this community name',
+    },
 };

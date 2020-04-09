@@ -26,6 +26,7 @@
     "eosjs-ecc": "^4.0.7",
     "node-fetch": "^2.6.0",
     "randomstring": "^1.1.5",
-    "text-encoding": "latest"
+    "text-encoding": "latest",
+    "transliteration": "^2.1.8"
   }
 }

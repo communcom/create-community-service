@@ -1,7 +1,8 @@
 const core = require('cyberway-core-service');
 const BasicService = core.services.Basic;
+const { Logger } = core.utils;
 const Blockchain = require('../utils/Blockchain');
-const { GLS_CLIENTS_KEY } = require('../data/env');
+const { GLS_CLIENTS_KEY, GLS_LEADER_EMISSION_ITERATION_HRS } = require('../data/env');
 const CommunityModel = require('../models/Community');
 
 class Emit extends BasicService {
@@ -13,13 +14,13 @@ class Emit extends BasicService {
 
     async start() {
         await super.start();
-        this.startLoop(0, 10000);
+        this.startLoop(0, GLS_LEADER_EMISSION_ITERATION_HRS * 60 * 1000);
     }
 
     async iteration() {
-        console.log('Emission iteration start');
+        Logger.log('Emission iteration start');
         await this.emitLeadersRewards();
-        console.log('Emission iteration stop');
+        Logger.log('Emission iteration stop');
     }
 
     async emitLeadersRewards() {
@@ -46,7 +47,7 @@ class Emit extends BasicService {
             emissionTransactionPromises.push(
                 this.blockchainApi.executeTrx(trx).catch((err) => {
                     // todo: catch "its not time for rewards"
-                    console.error(err);
+                    Logger.error(err);
                 })
             );
         }

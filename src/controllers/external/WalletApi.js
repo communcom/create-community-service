@@ -1,5 +1,6 @@
 const core = require('cyberway-core-service');
 const BasicController = core.controllers.Basic;
+const { Logger } = core.utils;
 const errors = require('../../data/errors');
 
 class WalletApi extends BasicController {
@@ -7,11 +8,15 @@ class WalletApi extends BasicController {
         super({ connector });
     }
 
+    async getTransfer({ trxId }) {
+        return await this.callService('wallet', 'getTransfer', { trxId });
+    }
+
     async getBalance({ userId }) {
         return await this.callService('wallet', 'getBalance', { userId });
     }
 
-    async waitForTrx(trxId, maxRetries = 5, retryNum = 0) {
+    async waitForTrx(trxId, maxRetries = 3, retryNum = 0) {
         const params = { transactionId: trxId };
 
         try {
@@ -24,9 +29,9 @@ class WalletApi extends BasicController {
                 return await this.waitForTrx(trxId, maxRetries, ++retryNum);
             }
 
-            Logger.error(`Error calling walletWriter.waitForBlock`, error);
+            Logger.error(`Error calling walletWriter.waitForTrx`, error);
 
-            error.prismError = true;
+            error.isTimeOut = true;
 
             throw error;
         }

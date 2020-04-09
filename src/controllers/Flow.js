@@ -66,6 +66,13 @@ class Flow {
         }
         let stepData;
         switch (this.stepInProgress) {
+            case 'waitForUsersTransfer':
+                try {
+                    stepData = await this.communityCreator.waitForUsersTransfer();
+                } catch (error) {
+                    this._throwStepError(error);
+                }
+                break;
             case 'createAccount':
                 try {
                     stepData = await this.communityCreator.createNewAccount();

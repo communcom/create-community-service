@@ -42,9 +42,41 @@ class CommunityCreator {
         this.communityParams = communityParams;
         this.initialSupplyRebuyTrxId = null;
         this.initialSupplyTransferTrxId = null;
+        this.usersTransferTrxId = null;
         if (restoreData) {
             this.restore(restoreData);
         }
+    }
+
+    async waitForUsersTransfer() {
+        try {
+            await this.walletApi.waitForTrx(this.usersTransferTrxId, 0);
+        } catch (err) {
+            if (!err.isTimeOut) {
+                throw err;
+            }
+        }
+        const { items: transfers } = await this.walletApi.getTransfer({
+            trxId: this.usersTransferTrxId,
+        });
+
+        const neededTransfer = transfers.find(({ sender, receiver, quantity, symbol, memo }) => {
+            if (
+                sender === this.communityCreatorUser &&
+                receiver === GLS_TECH_NAME &&
+                Number(quantity) === this.communitySettings.initialSupply &&
+                symbol === 'CMN' &&
+                memo === `for community: ${this.communitySettings.ticker}`
+            ) {
+                return true;
+            }
+        });
+
+        if (neededTransfer) {
+            return { neededTransfer };
+        }
+
+        throw { message: 'Cannot find the transfer' };
     }
 
     async transferPointsToUser() {
@@ -337,6 +369,9 @@ class CommunityCreator {
                     break;
                 case 'transferPointsToUser':
                     this.initialSupplyTransferTrxId = data.initialSupplyTransferTrxId;
+                    break;
+                case 'waitForUsersTransfer':
+                    this.usersTransferTrxId = data.usersTransferTrxId;
                     break;
             }
         }

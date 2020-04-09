@@ -107,7 +107,7 @@ class CommunityApi extends BasicController {
         await CommunityModel.updateOne({ communityId, creator }, { $set: newSettings });
     }
 
-    async startCommunityCreation({ communityId }, { userId: creator }) {
+    async startCommunityCreation({ communityId, transferTrxId }, { userId: creator }) {
         if (!creator) {
             throw errors.ERR_USER_NOT_AUTHORIZED;
         }
@@ -128,6 +128,21 @@ class CommunityApi extends BasicController {
 
         if (!existingCommunity.isInProgress) {
             await CommunityModel.updateOne({ communityId }, { $set: { currentStep: 'ready' } });
+        }
+
+        if (!existingCommunity.transferTrxId) {
+            if (!transferTrxId) {
+                throw errors.ERR_NO_TRX_ID_PROVIDED;
+            } else {
+                await CommunityModel.updateOne(
+                    { communityId },
+                    {
+                        $set: {
+                            'stepsData.waitForUsersTransfer': { usersTransferTrxId: transferTrxId },
+                        },
+                    }
+                );
+            }
         }
 
         const flow = new Flow(existingCommunity, { connector: this.connector });

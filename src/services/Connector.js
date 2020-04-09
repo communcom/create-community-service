@@ -70,6 +70,7 @@ class Connector extends BasicConnector {
                         required: ['communityId'],
                         properties: {
                             communityId: { type: 'string' },
+                            transferTrxId: { type: 'string' },
                         },
                     },
                 },

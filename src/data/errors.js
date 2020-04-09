@@ -31,4 +31,8 @@ module.exports = {
         code: 1007,
         message: 'Cannot generate communityId for this community name',
     },
+    ERR_NO_TRX_ID_PROVIDED: {
+        code: 1008,
+        message: 'Transaction id with transfer is not provided',
+    },
 };

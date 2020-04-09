@@ -1,6 +1,7 @@
 module.exports = [
     'settingUp',
     'ready',
+    'waitForUsersTransfer',
     'createAccount',
     'appendUsername',
     'grantPermissions',

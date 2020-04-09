@@ -356,7 +356,7 @@ class CommunityCreator {
             account: this.communityCreatorAccount.userId,
             code: 'c.point',
             type: 'transfer',
-            requirement: 'lead.minor',
+            requirement: 'transferperm',
         });
 
         await this.bcApi.executeTrx(transferTrx);

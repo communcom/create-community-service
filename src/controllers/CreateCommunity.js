@@ -6,7 +6,14 @@ const {
     communitySystemParams,
     communityParams,
 } = require('../data/communitySettings');
-const { GLS_TECH_NAME, GLS_ENCRYPTION_PASSWORD } = require('../data/env');
+const {
+    GLS_TECH_NAME,
+    GLS_ENCRYPTION_PASSWORD,
+    GLS_POINTS_FOR_BOUNTY_PERCENT,
+    GLS_POINTS_FOR_BURN_PERCENT,
+    GLS_POINTS_FOR_USER_PERCENT,
+    GLS_BOUNTY_NAME,
+} = require('../data/env');
 
 class CommunityCreator {
     constructor(
@@ -43,6 +50,8 @@ class CommunityCreator {
         this.initialSupplyRebuyTrxId = null;
         this.initialSupplyTransferTrxId = null;
         this.usersTransferTrxId = null;
+        this.initialSupplyBurnTransferTrxId = null;
+        this.initialSupplyBountyTransferTrxId = null;
         if (restoreData) {
             this.restore(restoreData);
         }
@@ -82,23 +91,80 @@ class CommunityCreator {
     async transferPointsToUser() {
         const balance = await this.walletApi.getBalance({ userId: GLS_TECH_NAME });
 
-        const pointBalance = balance.balances.find((balance) => {
+        const { symbol: pointSymbol, balance: pointBalance } = balance.balances.find((balance) => {
             if (balance.symbol === this.communitySettings.ticker) {
                 return true;
             }
         });
 
-        const transferTrx = await this.bcApi.generatePointTransferTrx({
+        const calculateTransferWithFee = (transferAmount, feeValue) => {
+            transferAmount = Number(transferAmount);
+            feeValue = Number(feeValue);
+            const feeRealPercent = feeValue / 10; // feeValue == 10 -> feeRealPercent=1%
+            const feeAbsolute = (transferAmount / 100) * feeRealPercent;
+
+            return transferAmount - feeAbsolute;
+        };
+
+        const pointsForUser = calculateTransferWithFee(
+            (Number(pointBalance) / 100) * GLS_POINTS_FOR_USER_PERCENT,
+            this.communitySettings.fee
+        );
+
+        const burnPoints = calculateTransferWithFee(
+            (Number(pointBalance) / 100) * GLS_POINTS_FOR_BURN_PERCENT,
+            this.communitySettings.fee
+        );
+
+        const pointsForBounty = calculateTransferWithFee(
+            (Number(pointBalance) / 100) * GLS_POINTS_FOR_BOUNTY_PERCENT,
+            this.communitySettings.fee
+        );
+
+        const transferUserTrx = await this.bcApi.generatePointTransferTrx({
             from: GLS_TECH_NAME,
             to: this.communityCreatorUser,
-            ticker: pointBalance.symbol,
+            ticker: pointSymbol,
             memo: 'initial supply',
-            quantity: Number(pointBalance.balance) - Number(pointBalance.balance) / 100,
+            quantity: pointsForUser,
         });
 
-        const { transaction_id: trxId } = await this.bcApi.executeTrx(transferTrx);
-        this.initialSupplyTransferTrxId = trxId;
-        return { initialSupplyTransferTrxId: trxId };
+        const transferBurnTrx = await this.bcApi.generatePointTransferTrx({
+            from: GLS_TECH_NAME,
+            to: 'cyber.null',
+            ticker: pointSymbol,
+            memo: 'initial supply',
+            quantity: burnPoints,
+        });
+
+        let transferBountyTrx = null;
+
+        if (GLS_TECH_NAME !== GLS_BOUNTY_NAME) {
+            transferBountyTrx = await this.bcApi.generatePointTransferTrx({
+                from: GLS_TECH_NAME,
+                to: GLS_BOUNTY_NAME,
+                ticker: pointSymbol,
+                memo: 'initial supply',
+                quantity: pointsForBounty,
+            });
+        }
+
+        const { transaction_id: userTrxId } = await this.bcApi.executeTrx(transferUserTrx);
+        const { transaction_id: burnTrxId } = await this.bcApi.executeTrx(transferBurnTrx);
+        let bountyTrxId = null;
+        if (transferBountyTrx) {
+            const { transaction_id: trxId } = await this.bcApi.executeTrx(transferBountyTrx);
+            bountyTrxId = trxId;
+        }
+
+        this.initialSupplyTransferTrxId = userTrxId;
+        this.initialSupplyBurnTransferTrxId = burnTrxId;
+        this.initialSupplyBountyTransferTrxId = bountyTrxId;
+        return {
+            initialSupplyTransferTrxId: userTrxId,
+            initialSupplyBurnTransferTrxId: burnTrxId,
+            initialSupplyBountyTransferTrxId: bountyTrxId,
+        };
     }
 
     async waitForSupplyRebuyTrx() {
@@ -369,6 +435,8 @@ class CommunityCreator {
                     break;
                 case 'transferPointsToUser':
                     this.initialSupplyTransferTrxId = data.initialSupplyTransferTrxId;
+                    this.initialSupplyBountyTransferTrxId = data.initialSupplyBountyTransferTrxId;
+                    this.initialSupplyBurnTransferTrxId = data.initialSupplyBurnTransferTrxId;
                     break;
                 case 'waitForUsersTransfer':
                     this.usersTransferTrxId = data.usersTransferTrxId;

@@ -14,6 +14,18 @@ class Blockchain {
         this._createApi();
     }
 
+    generateEmitTransaction({ communCode: commun_code }) {
+        return this.generateSingleActionTrx({
+            contract: 'c.ctrl',
+            action: 'emit',
+            actor: 'c.ctrl',
+            permission: 'clients',
+            data: {
+                commun_code,
+            },
+        });
+    }
+
     generateSetParamsTransaction({
         communCode,
         leadersNum,

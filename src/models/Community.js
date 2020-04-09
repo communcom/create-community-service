@@ -133,6 +133,11 @@ module.exports = MongoDB.makeModel(
                     unique: true,
                 },
             },
+            {
+                fields: {
+                    isDone: 1,
+                },
+            },
         ],
     }
 );

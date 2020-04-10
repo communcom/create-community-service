@@ -2,7 +2,7 @@ module.exports = {
     communitySettings: {
         fee: 10,
         cw: 4000,
-        initialSupply: 10000,
+        initialSupply: 100000,
         maximumSupply: 10000000000,
     },
     communitySystemParams: {

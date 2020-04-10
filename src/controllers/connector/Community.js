@@ -153,6 +153,11 @@ class CommunityApi extends BasicController {
 
         const flow = new Flow(existingCommunity, { connector: this.connector });
 
+        await CommunityModel.updateOne(
+            { communityId },
+            { $set: { canChangeSettings: false, isInProgress: true } }
+        );
+
         this.communitiesInProgress.add(communityId);
         try {
             await flow.executeFlow();

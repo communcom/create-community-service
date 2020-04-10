@@ -38,17 +38,23 @@ class Emit extends BasicService {
 
             for (const { communityId: communCode } of communities) {
                 const trx = this.blockchainApi.generateEmitTransaction({ communCode });
-                emissionTransactions.push(trx);
+                emissionTransactions.push({ communityId: communCode, trx });
             }
         }
 
         const emissionTransactionPromises = [];
-        for (const trx of emissionTransactions) {
+        for (const { communityId, trx } of emissionTransactions) {
             emissionTransactionPromises.push(
-                this.blockchainApi.executeTrx(trx).catch((err) => {
-                    // todo: catch "its not time for rewards"
-                    Logger.error(err);
-                })
+                (async () => {
+                    Logger.log('Trying to emit for', communityId);
+                    try {
+                        await this.blockchainApi.executeTrx(trx);
+                        Logger.log('Successful emission for', communityId);
+                    } catch (err) {
+                        err = err.json || err;
+                        Logger.error(`Error during emission for ${communityId}:`, err);
+                    }
+                })()
             );
         }
         await Promise.all(emissionTransactionPromises);

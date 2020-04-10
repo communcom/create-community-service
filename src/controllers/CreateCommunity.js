@@ -111,11 +111,6 @@ class CommunityCreator {
             this.communitySettings.fee
         );
 
-        const burnPoints = calculateTransferWithFee(
-            (Number(pointBalance) / 100) * GLS_POINTS_FOR_BURN_PERCENT,
-            this.communitySettings.fee
-        );
-
         const pointsForBounty = calculateTransferWithFee(
             (Number(pointBalance) / 100) * GLS_POINTS_FOR_BOUNTY_PERCENT,
             this.communitySettings.fee
@@ -127,14 +122,6 @@ class CommunityCreator {
             ticker: pointSymbol,
             memo: 'initial supply',
             quantity: pointsForUser,
-        });
-
-        const transferBurnTrx = await this.bcApi.generatePointTransferTrx({
-            from: GLS_TECH_NAME,
-            to: 'cyber.null',
-            ticker: pointSymbol,
-            memo: 'initial supply',
-            quantity: burnPoints,
         });
 
         let transferBountyTrx = null;
@@ -150,7 +137,6 @@ class CommunityCreator {
         }
 
         const { transaction_id: userTrxId } = await this.bcApi.executeTrx(transferUserTrx);
-        const { transaction_id: burnTrxId } = await this.bcApi.executeTrx(transferBurnTrx);
         let bountyTrxId = null;
         if (transferBountyTrx) {
             const { transaction_id: trxId } = await this.bcApi.executeTrx(transferBountyTrx);
@@ -158,11 +144,9 @@ class CommunityCreator {
         }
 
         this.initialSupplyTransferTrxId = userTrxId;
-        this.initialSupplyBurnTransferTrxId = burnTrxId;
         this.initialSupplyBountyTransferTrxId = bountyTrxId;
         return {
             initialSupplyTransferTrxId: userTrxId,
-            initialSupplyBurnTransferTrxId: burnTrxId,
             initialSupplyBountyTransferTrxId: bountyTrxId,
         };
     }
@@ -172,16 +156,30 @@ class CommunityCreator {
     }
 
     async buyInitialSupplyPoints() {
+        const burnTokensQuantity =
+            (this.communitySettings.initialSupply / 100) * GLS_POINTS_FOR_BURN_PERCENT;
+
+        const rebuyQuantity = this.communitySettings.initialSupply - (burnTokensQuantity + 1);
+
+        const burnTokensTrx = await this.bcApi.generateTokenTransferTrx({
+            from: GLS_TECH_NAME,
+            quantity: burnTokensQuantity,
+            to: 'cyber.null',
+        });
+
+        const { transaction_id: burnTrxId } = await this.bcApi.executeTrx(burnTokensTrx);
+        this.initialSupplyBurnTransferTrxId = burnTrxId;
+
         const reBuyTrx = await this.bcApi.generateTokenTransferTrx({
             from: GLS_TECH_NAME,
-            quantity: this.communitySettings.initialSupply - 1,
+            quantity: rebuyQuantity,
             memo: this.communitySettings.ticker,
             to: 'c.point',
         });
 
-        const { transaction_id: trxId } = await this.bcApi.executeTrx(reBuyTrx);
-        this.initialSupplyRebuyTrxId = trxId;
-        return { initialSupplyRebuyTrxId: trxId };
+        const { transaction_id: rebuyTrxId } = await this.bcApi.executeTrx(reBuyTrx);
+        this.initialSupplyRebuyTrxId = rebuyTrxId;
+        return { initialSupplyRebuyTrxId: rebuyTrxId, initialSupplyBurnTransferTrxId: burnTrxId };
     }
 
     async openTechBalance() {
@@ -432,11 +430,11 @@ class CommunityCreator {
                     break;
                 case 'buyInitialSupplyPoints':
                     this.initialSupplyRebuyTrxId = data.initialSupplyRebuyTrxId;
+                    this.initialSupplyBurnTransferTrxId = data.initialSupplyBurnTransferTrxId;
                     break;
                 case 'transferPointsToUser':
                     this.initialSupplyTransferTrxId = data.initialSupplyTransferTrxId;
                     this.initialSupplyBountyTransferTrxId = data.initialSupplyBountyTransferTrxId;
-                    this.initialSupplyBurnTransferTrxId = data.initialSupplyBurnTransferTrxId;
                     break;
                 case 'waitForUsersTransfer':
                     this.usersTransferTrxId = data.usersTransferTrxId;

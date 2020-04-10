@@ -13,6 +13,7 @@ const {
     GLS_POINTS_FOR_BURN_PERCENT,
     GLS_POINTS_FOR_USER_PERCENT,
     GLS_BOUNTY_NAME,
+    GLS_TOKENS_INITIAL_TRANSFER,
 } = require('../data/env');
 
 class CommunityCreator {
@@ -73,7 +74,7 @@ class CommunityCreator {
             if (
                 sender === this.communityCreatorUser &&
                 receiver === GLS_TECH_NAME &&
-                Number(quantity) === this.communitySettings.initialSupply &&
+                Number(quantity) === GLS_TOKENS_INITIAL_TRANSFER &&
                 symbol === 'CMN' &&
                 memo === `for community: ${this.communitySettings.ticker}`
             ) {
@@ -157,9 +158,9 @@ class CommunityCreator {
 
     async buyInitialSupplyPoints() {
         const burnTokensQuantity =
-            (this.communitySettings.initialSupply / 100) * GLS_POINTS_FOR_BURN_PERCENT;
+            (GLS_TOKENS_INITIAL_TRANSFER / 100) * GLS_POINTS_FOR_BURN_PERCENT;
 
-        const rebuyQuantity = this.communitySettings.initialSupply - (burnTokensQuantity + 1);
+        const rebuyQuantity = GLS_TOKENS_INITIAL_TRANSFER - (burnTokensQuantity + 1);
 
         const burnTokensTrx = await this.bcApi.generateTokenTransferTrx({
             from: GLS_TECH_NAME,

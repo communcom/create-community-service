@@ -111,6 +111,7 @@ module.exports = MongoDB.makeModel(
         },
         stepsData: {
             type: Object,
+            default: {},
         },
     },
     {

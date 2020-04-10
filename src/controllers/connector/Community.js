@@ -145,6 +145,7 @@ class CommunityApi extends BasicController {
                     {
                         $set: {
                             'stepsData.waitForUsersTransfer': { usersTransferTrxId: transferTrxId },
+                            transferTrxId,
                         },
                     }
                 );

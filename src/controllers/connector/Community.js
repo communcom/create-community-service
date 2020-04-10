@@ -188,6 +188,10 @@ class CommunityApi extends BasicController {
     }
 
     async isExists({ name, communityId }) {
+        if (communityId === 'CMN') {
+            return true;
+        }
+
         const query = {};
         let communityAlias;
 

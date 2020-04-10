@@ -35,4 +35,8 @@ module.exports = {
         code: 1008,
         message: 'Transaction id with transfer is not provided',
     },
+    ERR_ALREADY_IN_PROGRESS: {
+        code: 1009,
+        message: 'Community creation is already in progress',
+    },
 };

@@ -6,6 +6,11 @@ const Flow = require('../Flow');
 const generateIdFromName = require('../../utils/generateTicker');
 
 class CommunityApi extends BasicController {
+    constructor(...params) {
+        super(...params);
+        this.communitiesInProgress = new Set();
+    }
+
     async getCommunity({ communityId }, { userId: creator }) {
         if (!creator) {
             throw errors.ERR_USER_NOT_AUTHORIZED;
@@ -104,6 +109,10 @@ class CommunityApi extends BasicController {
     }
 
     async startCommunityCreation({ communityId, transferTrxId }, { userId: creator }) {
+        if (this.communitiesInProgress.has(communityId)) {
+            throw errors.ERR_ALREADY_IN_PROGRESS;
+        }
+
         if (!creator) {
             throw errors.ERR_USER_NOT_AUTHORIZED;
         }
@@ -143,7 +152,9 @@ class CommunityApi extends BasicController {
 
         const flow = new Flow(existingCommunity, { connector: this.connector });
 
-        return await flow.executeFlow();
+        this.communitiesInProgress.add(communityId);
+        await flow.executeFlow();
+        this.communitiesInProgress.delete(communityId);
     }
 
     async getUsersCommunities({}, { userId: creator }) {

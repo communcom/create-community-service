@@ -61,7 +61,7 @@ class Flow {
                 { $set: { isDone: true, isInProgress: false, currentStep: 'done' } }
             );
             this.currentStep = 'done';
-            Logger.log('Community creation done');
+            Logger.log('Community creation done', this.communityCreator.communitySettings.ticker);
             return;
         }
         let stepData;
@@ -194,7 +194,11 @@ class Flow {
                 };
         }
 
-        Logger.log('Executed step', this.stepInProgress);
+        Logger.log(
+            'Executed step',
+            this.stepInProgress,
+            this.communityCreator.communitySettings.ticker
+        );
 
         this.currentStep = this.stepInProgress;
         await CommunityModel.updateOne(

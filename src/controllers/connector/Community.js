@@ -153,8 +153,13 @@ class CommunityApi extends BasicController {
         const flow = new Flow(existingCommunity, { connector: this.connector });
 
         this.communitiesInProgress.add(communityId);
-        await flow.executeFlow();
-        this.communitiesInProgress.delete(communityId);
+        try {
+            await flow.executeFlow();
+        } catch (error) {
+            throw error;
+        } finally {
+            this.communitiesInProgress.delete(communityId);
+        }
     }
 
     async getUsersCommunities({}, { userId: creator }) {

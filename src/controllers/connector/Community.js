@@ -16,10 +16,6 @@ class CommunityApi extends BasicController {
             { lean: true }
         );
 
-        if (!community) {
-            throw errors.ERR_COMMUNITY_NOT_FOUND;
-        }
-
         return { community };
     }
 

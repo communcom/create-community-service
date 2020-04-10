@@ -1,4 +1,5 @@
 const core = require('cyberway-core-service');
+const { normalizeCommunityNames } = require('commun-utils').community;
 const BasicController = core.controllers.Basic;
 const errors = require('../../data/errors');
 const CommunityModel = require('../../models/Community');
@@ -25,20 +26,20 @@ class CommunityApi extends BasicController {
     }
 
     async createNewCommunity({ name }, { userId: creator }) {
+        const { isExists } = await this.isExists({ name });
+        if (isExists) {
+            throw errors.ERR_ALREADY_EXISTS;
+        }
+
         let communityId;
         try {
-            communityId = await generateIdFromName(name);
+            communityId = await generateIdFromName(name, this.isExists.bind(this));
         } catch (e) {
             throw errors.ERR_CANT_GENERATE_ID;
         }
 
         if (!creator) {
             throw errors.ERR_USER_NOT_AUTHORIZED;
-        }
-
-        const existingCommunity = await CommunityModel.findOne({ name });
-        if (existingCommunity) {
-            throw errors.ERR_ALREADY_EXISTS;
         }
 
         await CommunityModel.create({ name, communityId, creator });
@@ -183,15 +184,34 @@ class CommunityApi extends BasicController {
 
     async isExists({ name, communityId }) {
         const query = {};
+        let communityAlias;
 
         if (communityId) {
             query.communityId = communityId;
         } else {
             query.name = name;
+            const names = normalizeCommunityNames({ name });
+            communityAlias = names.alias;
         }
 
-        const community = await CommunityModel.findOne(query, { _id: 1 }, { lean: true });
-        return !!community;
+        let community = await CommunityModel.findOne(query, { _id: 1 }, { lean: true });
+
+        if (!community) {
+            try {
+                community = await this.callService('prism', 'getCommunity', {
+                    communityId,
+                    communityAlias,
+                });
+            } catch (error) {
+                if (error.code === 404) {
+                    community = null;
+                } else {
+                    throw error;
+                }
+            }
+        }
+
+        return { isExists: !!community };
     }
 }
 

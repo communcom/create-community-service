@@ -21,6 +21,7 @@
     "prettier": "^2.0.2"
   },
   "dependencies": {
+    "commun-utils": "^1.2.0",
     "cyberway-core-service": "^3.59.2",
     "cyberwayjs": "^20.0.2",
     "eosjs-ecc": "^4.0.7",

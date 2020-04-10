@@ -11,15 +11,15 @@ function generateRandomId(alphabet, length) {
     return id.join('');
 }
 
-async function isIdAvailable(communityId) {
-    const community = await CommunityModel.findOne({ communityId }, { _id: false }, { lean: true });
-    return !community;
+async function isIdAvailable(communityId, existsCheckFn) {
+    const { isExists } = await existsCheckFn({ communityId });
+    return !isExists;
 }
 
-async function generateIdByAddingLetter(id, revertedAlphabetArr) {
+async function generateIdByAddingLetter(id, revertedAlphabetArr, existsCheckFn) {
     for (const letter of revertedAlphabetArr) {
         const nextId = id + letter;
-        const checkedIdAvailable = await isIdAvailable(nextId);
+        const checkedIdAvailable = await isIdAvailable(nextId, existsCheckFn);
 
         if (checkedIdAvailable) {
             return nextId;
@@ -29,7 +29,7 @@ async function generateIdByAddingLetter(id, revertedAlphabetArr) {
     return null;
 }
 
-async function getTickerFromName(name) {
+async function getTickerFromName(name, existsCheckFn) {
     const ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
     let checkedIdAvailable;
 
@@ -45,34 +45,38 @@ async function getTickerFromName(name) {
         id = generateRandomId(ALPHABET, 6);
     }
 
-    checkedIdAvailable = await isIdAvailable(id);
+    checkedIdAvailable = await isIdAvailable(id, existsCheckFn);
 
     if (checkedIdAvailable) {
         return id;
     }
 
     const clippedId = id.replace(/A|E|I|O|U/g, '');
-    checkedIdAvailable = await isIdAvailable(clippedId);
+    checkedIdAvailable = await isIdAvailable(clippedId, existsCheckFn);
 
     if (checkedIdAvailable) {
         return clippedId;
     }
 
     const revertedAlphabetArr = ALPHABET.split('').reverse();
-    const revertedAlphabetId = await generateIdByAddingLetter(id, revertedAlphabetArr);
+    const revertedAlphabetId = await generateIdByAddingLetter(
+        id,
+        revertedAlphabetArr,
+        existsCheckFn
+    );
 
     if (revertedAlphabetId) {
         return revertedAlphabetId;
     }
 
     id = generateRandomId(ALPHABET, 6);
-    checkedIdAvailable = await isIdAvailable(id);
+    checkedIdAvailable = await isIdAvailable(id, existsCheckFn);
 
     if (checkedIdAvailable) {
         return id;
     }
 
-    id = await generateIdByAddingLetter(id, revertedAlphabetArr);
+    id = await generateIdByAddingLetter(id, revertedAlphabetArr, existsCheckFn);
 
     if (id) {
         return id;

@@ -86,6 +86,7 @@ class Connector extends BasicConnector {
             requiredClients: {
                 wallet: env.GLS_WALLET_CONNECT,
                 walletWriter: env.GLS_WALLET_WRITER_CONNECT,
+                prism: env.GLS_PRISM_CONNECT,
             },
         });
     }

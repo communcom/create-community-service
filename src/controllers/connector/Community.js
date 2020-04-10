@@ -136,7 +136,7 @@ class CommunityApi extends BasicController {
             await CommunityModel.updateOne({ communityId }, { $set: { currentStep: 'ready' } });
         }
 
-        if (!existingCommunity.transferTrxId) {
+        if (!existingCommunity.stepsData.waitForUsersTransfer) {
             if (!transferTrxId) {
                 throw errors.ERR_NO_TRX_ID_PROVIDED;
             } else {
@@ -145,7 +145,6 @@ class CommunityApi extends BasicController {
                     {
                         $set: {
                             'stepsData.waitForUsersTransfer': { usersTransferTrxId: transferTrxId },
-                            transferTrxId,
                         },
                     }
                 );

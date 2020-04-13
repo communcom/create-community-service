@@ -11,7 +11,6 @@ const {
     GLS_ENCRYPTION_PASSWORD,
     GLS_POINTS_FOR_BOUNTY_PERCENT,
     GLS_POINTS_FOR_BURN_PERCENT,
-    GLS_POINTS_FOR_USER_PERCENT,
     GLS_BOUNTY_NAME,
     GLS_TOKENS_INITIAL_TRANSFER,
 } = require('../data/env');
@@ -107,13 +106,13 @@ class CommunityCreator {
             return transferAmount - feeAbsolute;
         };
 
-        const pointsForUser = calculateTransferWithFee(
-            (Number(pointBalance) / 100) * GLS_POINTS_FOR_USER_PERCENT,
+        const pointsForBounty = calculateTransferWithFee(
+            (Number(pointBalance) / 100) * GLS_POINTS_FOR_BOUNTY_PERCENT,
             this.communitySettings.fee
         );
 
-        const pointsForBounty = calculateTransferWithFee(
-            (Number(pointBalance) / 100) * GLS_POINTS_FOR_BOUNTY_PERCENT,
+        const pointsForUser = calculateTransferWithFee(
+            Number(pointBalance) - pointsForBounty,
             this.communitySettings.fee
         );
 
@@ -271,6 +270,18 @@ class CommunityCreator {
         });
 
         await this.bcApi.executeTrx(openBalanceTrx);
+    }
+
+    async returnRestocked() {
+        const restockTrx = await this.bcApi.generatePointTransferTrx({
+            from: this.communityCreatorAccount.userId,
+            to: this.communityCreatorUser,
+            quantity: this.communitySettings.initialSupply,
+            ticker: this.communitySettings.ticker,
+            memo: 'return restocked initial supply',
+        });
+
+        await this.bcApi.executeTrx(restockTrx);
     }
 
     async restockOneToken() {

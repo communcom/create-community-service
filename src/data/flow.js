@@ -8,6 +8,7 @@ module.exports = [
     'returnOneToken',
     'createPoint',
     'restockOneToken',
+    'returnRestocked',
     'openGalleryBalance',
     'createCommunityInList',
     'setInfo',

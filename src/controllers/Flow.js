@@ -115,6 +115,13 @@ class Flow {
                     this._throwStepError(error);
                 }
                 break;
+            case 'returnRestocked':
+                try {
+                    stepData = await this.communityCreator.returnRestocked();
+                } catch (error) {
+                    this._throwStepError(error);
+                }
+                break;
             case 'openGalleryBalance':
                 try {
                     stepData = await this.communityCreator.openGalleryBalance();

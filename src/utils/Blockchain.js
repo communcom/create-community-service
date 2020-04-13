@@ -14,16 +14,19 @@ class Blockchain {
         this._createApi();
     }
 
-    generateEmitTransaction({ communCode: commun_code }) {
-        return this.generateSingleActionTrx({
-            contract: 'c.ctrl',
-            action: 'emit',
-            actor: 'c.ctrl',
-            permission: 'clients',
-            data: {
-                commun_code,
+    generateEmitTransaction({ communCode: commun_code, communityTechAccount }) {
+        return this.generateSingleActionTrx(
+            {
+                contract: 'c.ctrl',
+                action: 'emit',
+                actor: 'c.ctrl',
+                permission: 'clients',
+                data: {
+                    commun_code,
+                },
             },
-        });
+            [communityTechAccount]
+        );
     }
 
     generateSetParamsTransaction({

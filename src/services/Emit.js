@@ -36,8 +36,11 @@ class Emit extends BasicService {
             oneMoreRound = hasMore;
             offset++;
 
-            for (const { communityId: communCode } of communities) {
-                const trx = this.blockchainApi.generateEmitTransaction({ communCode });
+            for (const { communityId: communCode, stepsData } of communities) {
+                const trx = this.blockchainApi.generateEmitTransaction({
+                    communCode,
+                    communityTechAccount: stepsData.createAccount.userId,
+                });
                 emissionTransactions.push({ communityId: communCode, trx });
             }
         }
@@ -63,7 +66,7 @@ class Emit extends BasicService {
     async getCommunitiesForEmission({ limit = 1000, offset = 0 }) {
         const communities = await CommunityModel.find(
             { isDone: true },
-            { communityId: true, _id: false },
+            { communityId: true, _id: false, 'stepsData.createAccount': true },
             { lean: true }
         )
             .limit(limit)

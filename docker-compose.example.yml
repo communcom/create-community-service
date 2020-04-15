@@ -1,0 +1,39 @@
+version: '2.1'
+services:
+  community-mongo:
+    container_name: community-mongo
+    image: mongo
+    restart: always
+    healthcheck:
+      test: mongo --eval 'db.getCollectionNames()'
+      interval: 10s
+      timeout: 2s
+      retries: 10
+    volumes:
+      - community_mongodb_vol:/data/db
+    ports:
+      - $GLS_MONGO_EXTERNAL_HOST:$GLS_MONGO_EXTERNAL_PORT:27017
+      - $GLS_METRICS_HOST:$GLS_METRICS_PORT:$GLS_METRICS_PORT
+    networks:
+      - services-tier
+
+  community-node:
+    container_name: community-node
+    restart: always
+    depends_on:
+      - community-mongo
+    build:
+      context: .
+      dockerfile: Dockerfile
+    networks:
+      - services-tier
+    ports:
+      - $GLS_CONNECTOR_HOST:$GLS_CONNECTOR_PORT:$GLS_CONNECTOR_PORT
+    env_file:
+      - .env
+
+volumes:
+  community_mongodb_vol:
+
+networks:
+  services-tier:

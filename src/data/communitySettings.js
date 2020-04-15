@@ -1,0 +1,32 @@
+module.exports = {
+    communitySettings: {
+        fee: 10,
+        cw: 4000,
+        initialSupply: 100000,
+        maximumSupply: 10000000000,
+    },
+    communitySystemParams: {
+        permission: null,
+        requiredThreshold: null,
+        collectionPeriod: 86400,
+        moderationPeriod: 86400,
+        extraRewardPeriod: null,
+        gemsPerDay: 50,
+        rewardedMosaicNum: null,
+        opuses: [],
+        removeOpuses: [],
+        minLeadRating: null,
+        damnedGemRewardEnabled: null,
+        refillGemEnabled: null,
+        customGemSizeEnabled: null,
+    },
+    communityParams: {
+        permission: null,
+        required_threshold: null,
+        leaders_num: null,
+        max_votes: null,
+        emission_rate: 5000,
+        leaders_percent: 1000,
+        author_percent: 5000,
+    },
+};

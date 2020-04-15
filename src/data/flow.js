@@ -16,7 +16,6 @@ module.exports = [
     'setParams',
     'grantAdditionalPermissions',
     'openTechBalance',
-    'burnPoints',
     'buyInitialSupplyPoints',
     'waitForSupplyRebuyTrx',
     'transferPointsToUser',

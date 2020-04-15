@@ -185,13 +185,6 @@ class Flow {
                     this._throwStepError(error);
                 }
                 break;
-            case 'burnPoints':
-                try {
-                    stepData = await this.communityCreator.burnPoints();
-                } catch (error) {
-                    this._throwStepError(error);
-                }
-                break;
             case 'buyInitialSupplyPoints':
                 try {
                     stepData = await this.communityCreator.buyInitialSupplyPoints();

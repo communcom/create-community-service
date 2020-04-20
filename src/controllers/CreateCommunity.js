@@ -155,11 +155,9 @@ class CommunityCreator {
         await this.walletApi.waitForTrx(this.initialSupplyRebuyTrxId);
     }
 
-    async buyInitialSupplyPoints() {
+    async burnPoints() {
         const burnTokensQuantity =
             (GLS_TOKENS_INITIAL_TRANSFER / 100) * GLS_POINTS_FOR_BURN_PERCENT;
-
-        const rebuyQuantity = GLS_TOKENS_INITIAL_TRANSFER - (burnTokensQuantity + 1);
 
         const burnTokensTrx = await this.bcApi.generateTokenTransferTrx({
             from: GLS_TECH_NAME,
@@ -169,6 +167,13 @@ class CommunityCreator {
 
         const { transaction_id: burnTrxId } = await this.bcApi.executeTrx(burnTokensTrx);
         this.initialSupplyBurnTransferTrxId = burnTrxId;
+        return { initialSupplyBurnTransferTrxId: burnTrxId };
+    }
+
+    async buyInitialSupplyPoints() {
+        const burnTokensQuantity =
+            (GLS_TOKENS_INITIAL_TRANSFER / 100) * GLS_POINTS_FOR_BURN_PERCENT;
+        const rebuyQuantity = GLS_TOKENS_INITIAL_TRANSFER - (burnTokensQuantity + 1);
 
         const reBuyTrx = await this.bcApi.generateTokenTransferTrx({
             from: GLS_TECH_NAME,
@@ -179,7 +184,7 @@ class CommunityCreator {
 
         const { transaction_id: rebuyTrxId } = await this.bcApi.executeTrx(reBuyTrx);
         this.initialSupplyRebuyTrxId = rebuyTrxId;
-        return { initialSupplyRebuyTrxId: rebuyTrxId, initialSupplyBurnTransferTrxId: burnTrxId };
+        return { initialSupplyRebuyTrxId: rebuyTrxId };
     }
 
     async openTechBalance() {
@@ -440,9 +445,11 @@ class CommunityCreator {
                         this.communityCreatorAccount.owner.privateKey,
                     ]);
                     break;
+                case 'burnPoints':
+                    this.initialSupplyBurnTransferTrxId = data.initialSupplyBurnTransferTrxId;
+                    break;
                 case 'buyInitialSupplyPoints':
                     this.initialSupplyRebuyTrxId = data.initialSupplyRebuyTrxId;
-                    this.initialSupplyBurnTransferTrxId = data.initialSupplyBurnTransferTrxId;
                     break;
                 case 'transferPointsToUser':
                     this.initialSupplyTransferTrxId = data.initialSupplyTransferTrxId;

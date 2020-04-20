@@ -158,7 +158,6 @@ class CommunityCreator {
     async burnPoints() {
         const burnTokensQuantity =
             (GLS_TOKENS_INITIAL_TRANSFER / 100) * GLS_POINTS_FOR_BURN_PERCENT;
-
         const burnTokensTrx = await this.bcApi.generateTokenTransferTrx({
             from: GLS_TECH_NAME,
             quantity: burnTokensQuantity,

@@ -9,18 +9,18 @@ class WalletApi extends BasicController {
     }
 
     async getTransfer({ trxId }) {
-        return await this.callService('facade', 'wallet.getTransfer', { trxId });
+        return await this.callService('facade', 'wallet.getTransfer', { params: { trxId } });
     }
 
     async getBalance({ userId }) {
-        return await this.callService('facade', 'wallet.getBalance', { userId });
+        return await this.callService('facade', 'wallet.getBalance', { params: { userId } });
     }
 
     async waitForTrx(trxId, maxRetries = 3, retryNum = 0) {
-        const params = { transactionId: trxId };
-
         try {
-            return await this.callService('facade', 'wallet.waitForTransaction', params);
+            return await this.callService('facade', 'wallet.waitForTransaction', {
+                params: { transactionId: trxId },
+            });
         } catch (error) {
             const code = error.code;
             const isTimeOut = code === 408 || code === 'ECONNRESET' || code === 'ETIMEDOUT';

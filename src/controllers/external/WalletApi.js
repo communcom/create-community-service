@@ -9,18 +9,18 @@ class WalletApi extends BasicController {
     }
 
     async getTransfer({ trxId }) {
-        return await this.callService('wallet', 'getTransfer', { trxId });
+        return await this.callService('facade', 'wallet.getTransfer', { trxId });
     }
 
     async getBalance({ userId }) {
-        return await this.callService('wallet', 'getBalance', { userId });
+        return await this.callService('facade', 'wallet.getBalance', { userId });
     }
 
     async waitForTrx(trxId, maxRetries = 3, retryNum = 0) {
         const params = { transactionId: trxId };
 
         try {
-            return await this.callService('walletWriter', 'waitForTransaction', params);
+            return await this.callService('facade', 'wallet.waitForTransaction', params);
         } catch (error) {
             const code = error.code;
             const isTimeOut = code === 408 || code === 'ECONNRESET' || code === 'ETIMEDOUT';
@@ -29,7 +29,7 @@ class WalletApi extends BasicController {
                 return await this.waitForTrx(trxId, maxRetries, ++retryNum);
             }
 
-            Logger.error(`Error calling walletWriter.waitForTrx`, error);
+            Logger.error(`Error calling wallet.waitForTransaction`, error);
 
             error.isTimeOut = true;
 

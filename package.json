@@ -22,7 +22,7 @@
   },
   "dependencies": {
     "commun-utils": "^1.2.0",
-    "cyberway-core-service": "^3.59.2",
+    "cyberway-core-service": "^3.59.3",
     "cyberwayjs": "^20.0.2",
     "eosjs-ecc": "^4.0.7",
     "node-fetch": "^2.6.0",

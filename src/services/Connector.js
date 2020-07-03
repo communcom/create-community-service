@@ -58,6 +58,7 @@ class Connector extends BasicConnector {
                             description: { type: 'string' },
                             rules: { type: 'string' },
                             language: { type: 'string' },
+                            subject: { type: 'string' },
                             avatarUrl: { type: 'string' },
                             coverUrl: { type: 'string' },
                         },

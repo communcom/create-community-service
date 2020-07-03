@@ -59,6 +59,7 @@ class Blockchain {
 
     generateSetSysInfoTransaction({
         communCode,
+        name,
         permission,
         requiredThreshold,
         collectionPeriod,
@@ -80,6 +81,7 @@ class Blockchain {
             permission: 'clients',
             data: {
                 commun_code: communCode,
+                community_name: name,
                 permission,
                 required_threshold: requiredThreshold,
                 collection_period: collectionPeriod,
@@ -105,6 +107,7 @@ class Blockchain {
         avatarUrl,
         coverUrl,
         actor,
+        subject,
     }) {
         return this.generateSingleActionTrx({
             contract: 'c.list',
@@ -117,6 +120,7 @@ class Blockchain {
                 rules,
                 avatar_image: avatarUrl,
                 cover_image: coverUrl,
+                subject,
             },
         });
     }

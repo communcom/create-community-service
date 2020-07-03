@@ -7,13 +7,24 @@ const flow = require('../data/flow');
 
 class Flow {
     constructor(
-        { communityId: ticker, name, description, language, rules, avatarUrl, coverUrl, creator },
+        {
+            communityId: ticker,
+            name,
+            description,
+            language,
+            subject,
+            rules,
+            avatarUrl,
+            coverUrl,
+            creator,
+        },
         { connector }
     ) {
         this.commuitySetup = {
             name,
             description,
             language,
+            subject,
             rules,
             avatarUrl,
             coverUrl,

@@ -22,6 +22,7 @@ class CommunityCreator {
             name,
             description,
             language = 'eng',
+            subject,
             rules,
             avatarUrl,
             coverUrl,
@@ -42,6 +43,7 @@ class CommunityCreator {
             rules,
             avatarUrl,
             coverUrl,
+            subject,
         };
 
         this.communityCreatorUser = creator;

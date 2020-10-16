@@ -58,6 +58,7 @@ class Connector extends BasicConnector {
                             description: { type: 'string' },
                             rules: { type: 'string' },
                             language: { type: 'string' },
+                            subject: { type: 'string' },
                             avatarUrl: { type: 'string' },
                             coverUrl: { type: 'string' },
                         },
@@ -84,8 +85,7 @@ class Connector extends BasicConnector {
                 parents: {},
             },
             requiredClients: {
-                wallet: env.GLS_WALLET_CONNECT,
-                walletWriter: env.GLS_WALLET_WRITER_CONNECT,
+                facade: env.GLS_FACADE_CONNECT,
                 prism: env.GLS_PRISM_CONNECT,
             },
         });

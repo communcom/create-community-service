@@ -53,7 +53,17 @@ class CommunityApi extends BasicController {
     }
 
     async setSettings(
-        { communityId, newCommunityId, name, description, language, rules, avatarUrl, coverUrl },
+        {
+            communityId,
+            newCommunityId,
+            name,
+            description,
+            language,
+            subject,
+            rules,
+            avatarUrl,
+            coverUrl,
+        },
         { userId: creator }
     ) {
         if (!creator) {
@@ -83,6 +93,9 @@ class CommunityApi extends BasicController {
         }
         if (language) {
             newSettings.language = language;
+        }
+        if (subject) {
+            newSettings.subject = subject;
         }
         if (rules) {
             newSettings.rules = rules;

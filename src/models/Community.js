@@ -32,6 +32,9 @@ module.exports = MongoDB.makeModel(
             type: String,
             default: 'en',
         },
+        subject: {
+            type: String,
+        },
         settings: {
             type: Object,
         },
